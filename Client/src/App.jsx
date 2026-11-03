@@ -3,6 +3,12 @@ import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+import Login from "./task/Login";
+import Register from "./task/Register";
+
+
 
 function App() {
 
@@ -10,14 +16,17 @@ function App() {
 
   return (
     <div>
-      <h2>Hello !!!! World</h2>
-      <p>I am a junior web developer in the internship program....</p>
-     <div>
-      <hr/>
-       <h1 class="text-3xl font-bold underline">
-    Hello world!dir
-  </h1>
-     </div>
+     <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
+        <Route path="/login" element={<Login />} />
+
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
+
+    
     </div>
     
   )
