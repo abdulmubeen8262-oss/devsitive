@@ -1,6 +1,17 @@
+
 import { useState } from "react";
 import axios from "axios";
-import { Heart, Moon,Sun,Eye,EyeOf,ArrowRight,Mic,ClipboardList,Lightbulb,ShieldCheck,
+import {
+  Heart,
+  Moon,
+  Sun,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Mic,
+  ClipboardList,
+  Lightbulb,
+  ShieldCheck,
 } from "lucide-react";
 
 const Login = () => {
@@ -58,18 +69,45 @@ const Login = () => {
       setLoading(true);
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/auth/login`,
+        `${import.meta.env.VITE_API_URL}/api/v1/auth/login`,
         {
-          email,
+          email: email.trim(),
           password,
         }
       );
+      if (response.data.success) {
+  localStorage.setItem("token", response.data.token);
 
-      // Store authentication token
+  localStorage.setItem(
+    "user",
+    JSON.stringify(response.data.user)
+  );
+
+  navigate("/dashboard");
+}
+
+      // Store JWT token
       localStorage.setItem("token", response.data.token);
+
+      // Store user information
+      localStorage.setItem(
+        "user",
+        JSON.stringify(response.data.user)
+      );
 
       // Navigate after successful login
       window.location.href = "/dashboard";
+
+      localStorage.setItem("token", response.data.token);
+
+localStorage.setItem(
+  "user",
+  JSON.stringify(response.data.user)
+);
+
+window.dispatchEvent(new Event("authChanged"));
+
+navigate("/dashboard");
 
     } catch (err) {
       setError(
@@ -86,9 +124,7 @@ const Login = () => {
   return (
     <div
       className={`min-h-screen w-full flex items-center justify-center p-4 sm:p-8 transition-colors duration-300 ${
-        dark
-          ? "bg-[#111827]"
-          : "bg-[#eef4f7]"
+        dark ? "bg-[#111827]" : "bg-[#eef4f7]"
       }`}
       style={{
         backgroundImage: dark
@@ -187,7 +223,9 @@ const Login = () => {
                     className={`absolute right-4 top-1/2 -translate-y-1/2 ${
                       dark ? "text-gray-400" : "text-[#8095b3]"
                     }`}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
                     {showPassword ? (
                       <EyeOff size={17} />
@@ -372,3 +410,4 @@ const Login = () => {
 };
 
 export default Login;
+

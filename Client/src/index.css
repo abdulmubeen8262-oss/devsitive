@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+.padding_section{
+    @apply px-3 py-4 md:px-5 md:py-10  ;
+}

@@ -1,52 +1,36 @@
-import fs from "fs"
-import path from "path"
-import { Sequelize } from "sequelize";
-import { fileURLToPath } from "url"
+import fs from "fs";
+import path from "path";
+import { fileURLToPath, pathToFileURL } from "url";
+import sequelize from "../Config/database.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-import { pathToFileURL } from "url";
-
-const env = process.env.NODE_ENV || "development";
-import configFile from "../Config/config.js";
-const config = configFile[env];
 
 const db = {};
 
-const sequelize = new Sequelize(
-  config.database,
-  config.username,
-  config.password,
-  config
+const files = fs.readdirSync(__dirname).filter(
+  (file) =>
+    file !== "index.js" &&
+    file.endsWith(".js") &&
+    !file.startsWith(".")
 );
 
-//  MODEL FILES ALL READ
+for (const file of files) {
+  const modelPath = pathToFileURL(
+    path.join(__dirname, file)
+  ).href;
 
-fs.readdirSync(__dirname)
-  .filter((file) => {
-    return (
-      file.indexOf(".") !== 0 &&
-      file !== "index.js" &&
-      file.endsWith(".js")
-    );
-  })
-  for (const file of fs.readdirSync(__dirname).filter((file) => {
-  return (
-    file.indexOf(".") !== 0 &&
-    file !== "index.js" &&
-    file.endsWith(".js")
-  );
-})) {
-  const modelPath = pathToFileURL(path.join(__dirname, file)).href;
   const modelModule = await import(modelPath);
+  const model = modelModule.default;
 
-  const model = modelModule.default(sequelize, Sequelize.DataTypes);
+  if (!model || !model.name) {
+    throw new Error(`Invalid model: ${file}`);
+  }
+
   db[model.name] = model;
+
+  console.log(`Model loaded: ${model.name}`);
 }
-
-
-
-// ANY IF ASSOCIATION RUN THAT.
 
 Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {

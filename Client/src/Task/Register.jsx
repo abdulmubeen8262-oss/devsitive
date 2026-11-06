@@ -1,6 +1,19 @@
+
 import { useState } from "react";
 import axios from "axios";
-import { Heart,Moon,Sun,Eye,EyeOff,ArrowRight,Upload,User,Mail,Phone,Globe,CreditCard,
+import {
+  Heart,
+  Moon,
+  Sun,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Upload,
+  User,
+  Mail,
+  Phone,
+  Globe,
+  CreditCard,
 } from "lucide-react";
 
 function Register() {
@@ -11,10 +24,12 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
   const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
-    fullName: "", username: "",
+    fullName: "",
+    username: "",
     email: "",
     phone: "",
     cnic: "",
@@ -25,12 +40,14 @@ function Register() {
     accountType: "",
   });
 
+  // Toggle Theme
   const toggleTheme = () => {
     const newTheme = !darkMode;
     setDarkMode(newTheme);
     localStorage.setItem("theme", newTheme ? "dark" : "light");
   };
 
+  // Handle Input Changes
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
@@ -43,27 +60,31 @@ function Register() {
       ...prev,
       [name]: "",
     }));
+
+    setMessage("");
   };
 
+  // Form Validation
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.fullName.trim())
+    if (!formData.fullName.trim()) {
       newErrors.fullName = "Full name is required";
+    }
 
-    if (!formData.username.trim())
+    if (!formData.username.trim()) {
       newErrors.username = "Username is required";
+    }
 
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
-    } else if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
-    ) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Enter a valid email";
     }
 
-    if (!formData.phone.trim())
+    if (!formData.phone.trim()) {
       newErrors.phone = "Phone number is required";
+    }
 
     if (!formData.cnic.trim()) {
       newErrors.cnic = "CNIC is required";
@@ -71,11 +92,13 @@ function Register() {
       newErrors.cnic = "Format: 12345-1234567-1";
     }
 
-    if (!formData.country)
+    if (!formData.country) {
       newErrors.country = "Please select country";
+    }
 
-    if (!formData.gender)
+    if (!formData.gender) {
       newErrors.gender = "Please select gender";
+    }
 
     if (!formData.password) {
       newErrors.password = "Password is required";
@@ -83,20 +106,25 @@ function Register() {
       newErrors.password = "Minimum 8 characters required";
     }
 
-    if (!formData.profilePicture)
+    if (!formData.profilePicture) {
       newErrors.profilePicture = "Please upload a picture";
+    }
 
-    if (!formData.accountType)
+    if (!formData.accountType) {
       newErrors.accountType = "Select account type";
+    }
 
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
   };
 
+  // Register API Integration
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setMessage("");
+    setMessageType("");
 
     if (!validateForm()) return;
 
@@ -106,17 +134,21 @@ function Register() {
       const data = new FormData();
 
       Object.entries(formData).forEach(([key, value]) => {
-        data.append(key, value);
+        if (value !== null && value !== undefined) {
+          data.append(key, value);
+        }
       });
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/auth/register`,
-        data
-      );
+  `${import.meta.env.VITE_API_URL}/api/v1/auth/register`,
+  formData
+);
 
       setMessage(
         response.data.message || "Registration successful!"
       );
+
+      setMessageType("success");
 
       setFormData({
         fullName: "",
@@ -132,12 +164,18 @@ function Register() {
       });
 
       e.target.reset();
+      setErrors({});
 
     } catch (error) {
+      console.error("REGISTER ERROR:", error);
+
       setMessage(
         error.response?.data?.message ||
         "Registration failed. Please try again."
       );
+
+      setMessageType("error");
+
     } finally {
       setLoading(false);
     }
@@ -170,11 +208,13 @@ function Register() {
           ? "linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px)"
           : "linear-gradient(rgba(80,110,130,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(80,110,130,.1) 1px,transparent 1px)",
         backgroundSize: "42px 42px",
-      }} >
+      }}
+    >
       <div
         className={`mx-auto max-w-5xl overflow-hidden rounded-3xl shadow-2xl ${
           darkMode ? "bg-[#1e293b]" : "bg-white"
-        }`} >
+        }`}
+      >
         {/* Header */}
         <div className="flex items-center justify-between bg-gradient-to-r from-[#117c76] to-[#087b96] px-6 py-5 sm:px-10">
           <div className="flex items-center gap-3">
@@ -199,7 +239,6 @@ function Register() {
 
         {/* Form Content */}
         <div className="p-6 sm:p-10">
-
           <div className="mb-8">
             <h2
               className={`text-2xl font-bold ${
@@ -219,12 +258,14 @@ function Register() {
 
               {/* 1 Full Name */}
               <div>
-                <label className={labelClass}>
-                  01. FULL NAME
-                </label>
+                <label className={labelClass}>01. FULL NAME</label>
 
                 <div className="relative">
-                  <User className="absolute left-4 top-3.5 text-slate-400" size={17} />
+                  <User
+                    className="absolute left-4 top-3.5 text-slate-400"
+                    size={17}
+                  />
+
                   <input
                     type="text"
                     name="fullName"
@@ -240,9 +281,7 @@ function Register() {
 
               {/* 2 Username */}
               <div>
-                <label className={labelClass}>
-                  02. USERNAME
-                </label>
+                <label className={labelClass}>02. USERNAME</label>
 
                 <input
                   type="text"
@@ -258,12 +297,14 @@ function Register() {
 
               {/* 3 Email */}
               <div>
-                <label className={labelClass}>
-                  03. EMAIL ADDRESS
-                </label>
+                <label className={labelClass}>03. EMAIL ADDRESS</label>
 
                 <div className="relative">
-                  <Mail className="absolute left-4 top-3.5 text-slate-400" size={17} />
+                  <Mail
+                    className="absolute left-4 top-3.5 text-slate-400"
+                    size={17}
+                  />
+
                   <input
                     type="email"
                     name="email"
@@ -279,12 +320,14 @@ function Register() {
 
               {/* 4 Phone */}
               <div>
-                <label className={labelClass}>
-                  04. PHONE NUMBER
-                </label>
+                <label className={labelClass}>04. PHONE NUMBER</label>
 
                 <div className="relative">
-                  <Phone className="absolute left-4 top-3.5 text-slate-400" size={17} />
+                  <Phone
+                    className="absolute left-4 top-3.5 text-slate-400"
+                    size={17}
+                  />
+
                   <input
                     type="tel"
                     name="phone"
@@ -300,12 +343,14 @@ function Register() {
 
               {/* 5 CNIC */}
               <div>
-                <label className={labelClass}>
-                  05. CNIC NUMBER
-                </label>
+                <label className={labelClass}>05. CNIC NUMBER</label>
 
                 <div className="relative">
-                  <CreditCard className="absolute left-4 top-3.5 text-slate-400" size={17} />
+                  <CreditCard
+                    className="absolute left-4 top-3.5 text-slate-400"
+                    size={17}
+                  />
+
                   <input
                     type="text"
                     name="cnic"
@@ -322,12 +367,13 @@ function Register() {
 
               {/* 6 Country */}
               <div>
-                <label className={labelClass}>
-                  06. COUNTRY
-                </label>
+                <label className={labelClass}>06. COUNTRY</label>
 
                 <div className="relative">
-                  <Globe className="absolute left-4 top-3.5 text-slate-400" size={17} />
+                  <Globe
+                    className="absolute left-4 top-3.5 text-slate-400"
+                    size={17}
+                  />
 
                   <select
                     name="country"
@@ -351,13 +397,15 @@ function Register() {
 
               {/* 7 Gender */}
               <div>
-                <label className={labelClass}>
-                  07. GENDER
-                </label>
+                <label className={labelClass}>07. GENDER</label>
 
-                <div className={`flex gap-5 rounded-xl border p-3 ${
-                  darkMode ? "border-gray-600" : "border-slate-200"
-                }`}>
+                <div
+                  className={`flex gap-5 rounded-xl border p-3 ${
+                    darkMode
+                      ? "border-gray-600"
+                      : "border-slate-200"
+                  }`}
+                >
                   {["Male", "Female", "Other"].map((item) => (
                     <label
                       key={item}
@@ -383,9 +431,7 @@ function Register() {
 
               {/* 8 Password */}
               <div>
-                <label className={labelClass}>
-                  08. PASSWORD
-                </label>
+                <label className={labelClass}>08. PASSWORD</label>
 
                 <div className="relative">
                   <input
@@ -403,7 +449,11 @@ function Register() {
                     className="absolute right-4 top-3.5 text-slate-400"
                     aria-label="Toggle password visibility"
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
                   </button>
                 </div>
 
@@ -418,7 +468,9 @@ function Register() {
 
                 <label
                   className={`flex cursor-pointer items-center gap-3 rounded-xl border border-dashed p-3 transition hover:border-teal-500 ${
-                    darkMode ? "border-gray-600 text-gray-300" : "border-slate-300 text-slate-600"
+                    darkMode
+                      ? "border-gray-600 text-gray-300"
+                      : "border-slate-300 text-slate-600"
                   }`}
                 >
                   <Upload size={20} className="text-teal-500" />
@@ -443,13 +495,15 @@ function Register() {
 
               {/* 10 Account Type */}
               <div>
-                <label className={labelClass}>
-                  10. ACCOUNT TYPE
-                </label>
+                <label className={labelClass}>10. ACCOUNT TYPE</label>
 
-                <div className={`flex flex-wrap gap-5 rounded-xl border p-3 ${
-                  darkMode ? "border-gray-600" : "border-slate-200"
-                }`}>
+                <div
+                  className={`flex flex-wrap gap-5 rounded-xl border p-3 ${
+                    darkMode
+                      ? "border-gray-600"
+                      : "border-slate-200"
+                  }`}
+                >
                   {["Clinic", "Veterinarian", "Admin"].map((item) => (
                     <label
                       key={item}
@@ -474,18 +528,24 @@ function Register() {
               </div>
             </div>
 
-            {/* Message */}
+            {/* API Message */}
             {message && (
-              <div className="mt-5 rounded-xl border border-teal-300 bg-teal-50 p-3 text-sm text-teal-700">
+              <div
+                className={`mt-5 rounded-xl border p-3 text-sm ${
+                  messageType === "success"
+                    ? "border-teal-300 bg-teal-50 text-teal-700"
+                    : "border-red-300 bg-red-50 text-red-600"
+                }`}
+              >
                 {message}
               </div>
             )}
 
-            {/* Submit */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="mt-8 flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-[#009f91] to-[#0099bd] py-3.5 text-sm font-bold text-white shadow-lg shadow-teal-500/20 transition hover:brightness-110 disabled:opacity-60"
+              className="mt-8 flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-[#009f91] to-[#0099bd] py-3.5 text-sm font-bold text-white shadow-lg shadow-teal-500/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? "Creating Account..." : "Create Account"}
               {!loading && <ArrowRight size={17} />}
@@ -508,3 +568,4 @@ function Register() {
 }
 
 export default Register;
+
