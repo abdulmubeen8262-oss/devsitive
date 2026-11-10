@@ -1,25 +1,14 @@
-import "dotenv/config";
 import express from "express";
-import cors from "cors";
+import dotenv from "dotenv";
 import router from "./Router/index.js";
-import db from "./Model/index.js";
+import { Product,Category,Query } from "./Model/index.js";
+import cors from "cors";
+import sequelize from "./Config/db.js";
+
+dotenv.config();
+
 
 const app = express();
-import path from "path";
-
-app.use(
-  "/uploads",
-  express.static(path.resolve("uploads"))
-);
-// CORS configuration
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
 
 // Request logger
 app.use((req, res, next) => {
@@ -27,19 +16,18 @@ app.use((req, res, next) => {
   next();
 });
 
-// Body parsers
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-// API routes
+app.use(cors({
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
 app.use("/api/v1", router);
 
-// Home route
 app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Server is running",
-  });
+  res.send("Server is running");
 });
 
 // 404 handler
@@ -50,44 +38,43 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler
+// Error handler
 app.use((err, req, res, next) => {
-  console.error("SERVER ERROR:", err);
-
-  const statusCode =
-    Number.isInteger(err.statusCode) &&
-    err.statusCode >= 400 &&
-    err.statusCode <= 599
-      ? err.statusCode
-      : 500;
-
-  res.status(statusCode).json({
+  console.error(err.stack);
+  res.status(500).json({
     success: false,
     message: err.message || "Internal Server Error",
   });
 });
 
-// Start server
-const startServer = async () => {
-  try {
-    await db.sequelize.authenticate();
 
+const server = async () => {
+  try {
+    await sequelize.authenticate();
     console.log("Database connected successfully");
 
-    await db.sequelize.sync({ alter: true });
+    // Create tables in dependency order
+    await Category.sync();
+    console.log("Categories table created");
 
-    console.log("Database synchronized successfully");
+    await Product.sync();
+    console.log("Products table created");
 
-    const PORT = process.env.PORT || 5000;
+    await Query.sync();
+    console.log("Queries table created");
 
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+    app.listen(process.env.PORT || 5000, () => {
+      console.log(
+        `Server is running on port ${process.env.PORT || 5000}`
+      );
     });
 
   } catch (error) {
     console.error("Unable to start server:", error);
-    process.exit(1);
   }
 };
 
-startServer();
+server();
+
+
+

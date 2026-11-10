@@ -1,43 +1,110 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath, pathToFileURL } from "url";
-import sequelize from "../Config/database.js";
+import Product from "./Product.js";
+import Category from "./Category.js";
+import Query from "./Query.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const db = {};
-
-const files = fs.readdirSync(__dirname).filter(
-  (file) =>
-    file !== "index.js" &&
-    file.endsWith(".js") &&
-    !file.startsWith(".")
-);
-
-for (const file of files) {
-  const modelPath = pathToFileURL(
-    path.join(__dirname, file)
-  ).href;
-
-  const modelModule = await import(modelPath);
-  const model = modelModule.default;
-
-  if (!model || !model.name) {
-    throw new Error(`Invalid model: ${file}`);
-  }
-
-  db[model.name] = model;
-
-  console.log(`Model loaded: ${model.name}`);
-}
-
-Object.keys(db).forEach((modelName) => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
-  }
+Category.hasMany(Product, {
+  foreignKey: "categoryId",
 });
 
-db.sequelize = sequelize;
+Product.belongsTo(Category, {
+  foreignKey: "categoryId",
+});
 
-export default db;
+Product.hasMany(Query, {
+  foreignKey: "productId",
+});
+
+Query.belongsTo(Product, {
+  foreignKey: "productId",
+});
+
+export { Product, Category, Query };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//yeh lines comment hai... import fs from "fs";
+//yeh lines comment hai... import path from "path";
+//yeh lines comment hai... import Sequelize from "sequelize";
+//yeh lines comment hai... import { fileURLToPath } from "url";
+
+ // const __filename = fileURLToPath(import.meta.url);
+ //const __dirname = path.dirname(__filename);
+//import { pathToFileURL } from "url";
+
+//const env = process.env.NODE_ENV || "development";
+//import configFile from "../Config/config.js";
+//const config = configFile[env];
+//const db = {};
+
+//const sequelize = new Sequelize(
+ // config.database,
+  //config.username,
+ // config.password,
+ // config
+//);
+
+//  READ ALL MODEL FILES
+//fs.readdirSync(__dirname)
+  //.filter((file) => {
+    //return (
+      //file.indexOf(".") !== 0 &&
+  // file !== "index.js" &&
+    //  file.endsWith(".js")
+  //  );
+ // })
+ // for (const file of fs.readdirSync(__dirname).filter((file) => {
+ // return (
+   // file.indexOf(".") !== 0 &&
+    //file !== "index.js" &&
+    ///file.endsWith(".js")
+ // );
+//})) {
+ // const modelPath = pathToFileURL(path.join(__dirname, file)).href;
+ // const modelModule = await import(modelPath);
+
+ // const model = modelModule.default(sequelize, Sequelize.DataTypes);
+ // db[model.name] = model;
+//}
+
+
+// RUN ASSOCIATIONS IF ANY
+//Object.keys(db).forEach((modelName) => {
+ // if (db[modelName].associate) {
+  //  db[modelName].associate(db);
+ // }
+//});
+
+//db.sequelize = sequelize;
+
+//export default db;

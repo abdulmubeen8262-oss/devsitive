@@ -20,6 +20,7 @@ export default (sequelize) => {
       modelName: 'User',
       tableName: 'users',
       timestamps: true,
+      paranoid: true
     }
   );
 

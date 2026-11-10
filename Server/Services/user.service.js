@@ -1,4 +1,6 @@
 import db from "../Model/index.js";
+
+
 const {User} = db;
 
 

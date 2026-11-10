@@ -1,5 +1,5 @@
-import bcrypt from "bcrypt";
-import authService from "../Services/auth.service.js";
+import bcrypt from 'bcrypt';
+import AuthService from '../Services/auth.service.js';
 
 const authController = {
 
