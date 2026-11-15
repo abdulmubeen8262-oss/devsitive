@@ -18,6 +18,14 @@ const Query = sequelize.define("Query", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  phone: {
+  type: DataTypes.STRING,
+  allowNull: true,
+},
+subject: {
+  type: DataTypes.STRING,
+  allowNull: false,
+},
 });
 
 export default Query;

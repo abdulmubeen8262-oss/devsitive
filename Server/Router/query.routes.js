@@ -1,11 +1,26 @@
-import express from "express";
 
-import {
-  createQuery,getQueries} from "../Controller/query.controller.js";
-
+const express = require("express");
 const router = express.Router();
 
-router.post("/", createQuery);
-router.get("/", getQueries);
+const {
+  createQuery,
+  getAllQueries,
+} = require("../Controller/Query.Controller");
 
-export default router;
+const validate = require("../Middleware/validate");
+
+const {
+  createQueryValidation,
+} = require("../Middleware/Query.Validation");
+
+router.post(
+  "/",
+  createQueryValidation,
+  validate,
+  createQuery
+);
+
+router.get("/", getAllQueries);
+
+module.exports = router;
+

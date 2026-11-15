@@ -1,24 +1,57 @@
-import Product from "./Product.js";
-import Category from "./Category.js";
-import Query from "./Query.js";
+const Product = require("./Product.Model");
+const ProductQuery = require("./Query.Model");
+const Contact = require("./Contact.Model");
 
-Category.hasMany(Product, {
-  foreignKey: "categoryId",
+// One Product can have many Queries
+Product.hasMany(ProductQuery, {
+  foreignKey: "productId",
+  onDelete: "CASCADE",
 });
 
-Product.belongsTo(Category, {
-  foreignKey: "categoryId",
-});
-
-Product.hasMany(Query, {
+ProductQuery.belongsTo(Product, {
   foreignKey: "productId",
 });
 
-Query.belongsTo(Product, {
-  foreignKey: "productId",
-});
+module.exports = {
+  Product,
+  ProductQuery,
+  Contact,
+};
 
-export { Product, Category, Query };
+
+
+
+
+
+
+
+
+
+
+
+
+
+//import Product from "./Product.js";
+//import Category from "./Category.js";
+//import Query from "./Query.js";
+
+//Category.hasMany(Product, {
+  //foreignKey: "categoryId",
+//});
+
+//Product.belongsTo(Category, {
+  //foreignKey: "categoryId",
+//});
+
+//Product.hasMany(Query, {
+ // foreignKey: "productId",
+//});
+
+//Query.belongsTo(Product, {
+  //foreignKey: "productId",
+//});
+
+//export { Product, Category, Query };
 
 
 

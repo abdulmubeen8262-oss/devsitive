@@ -1,68 +1,78 @@
-import { Query, Product } from "../Model/index.js";
+const { Product, ProductQuery } = require("../Model");
 
 // CREATE QUERY
-
-export const createQuery = async (req, res) => {
+const createQuery = async (req, res, next) => {
   try {
-    const { name, email, message, productId } = req.body;
+    const { productId, name, email, message } = req.body;
 
-    if (!name || !email || !message || !productId) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required",
-      });
+    if (!productId || !name || !email || !message) {
+      const error = new Error("All fields are required");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (
+      typeof message !== "string" ||
+      message.trim().length > 255
+    ) {
+      const error = new Error(
+        "Message must not exceed 255 characters"
+      );
+      error.statusCode = 400;
+      throw error;
     }
 
     const product = await Product.findByPk(productId);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
+      const error = new Error("Product not found");
+      error.statusCode = 404;
+      throw error;
     }
 
-    const query = await Query.create({
-      name,
-      email,
-      message,
-      productId,
+    const query = await ProductQuery.create({
+      productId: product.id,
+      name: name.trim(),
+      email: email.trim(),
+      message: message.trim(),
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: "Query submitted successfully",
+      message: "Product query submitted successfully",
       data: query,
     });
 
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return next(error);
   }
 };
 
-
 // GET ALL QUERIES
-export const getQueries = async (req, res) => {
+const getAllQueries = async (req, res, next) => {
   try {
-    const queries = await Query.findAll({
-      include: [{
-        model: Product,
-        attributes: ["id", "name"],
-      }],
+    const queries = await ProductQuery.findAll({
+      include: [
+        {
+          model: Product,
+          attributes: ["id", "name", "category"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
+      count: queries.length,
       data: queries,
     });
 
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return next(error);
   }
+};
+
+module.exports = {
+  createQuery,
+  getAllQueries,
 };

@@ -1,82 +1,85 @@
-import { Product, Category } from "../Model/index.js";
+const { Product } = require("../Model");
 
+// Parse JSON fields sent through FormData
+const parseJSONField = (value, fallback) => {
+  if (value === undefined || value === null || value === "") {
+    return fallback;
+  }
+
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    const err = new Error("Invalid JSON format in product fields");
+    err.statusCode = 400;
+    throw err;
+  }
+};
 
 // CREATE PRODUCT
-export const createProduct = async (req, res) => {
+const createProduct = async (req, res, next) => {
   try {
-    const { name, description, price, image, categoryId } = req.body;
-
-    if (!name || !description || price == null || !categoryId) {
-      return res.status(400).json({
-        success: false,
-        message: "All required fields are necessary",
-      });
-    }
-
-    const category = await Category.findByPk(categoryId);
-
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: "Category not found",
-      });
-    }
+    const {
+      name,
+      category,
+      material,
+      description,
+    } = req.body;
 
     const product = await Product.create({
       name,
+      category,
+      material,
       description,
-      price,
-      image,
-      categoryId,
+
+      image: req.file
+        ? `/uploads/products/${req.file.filename}`
+        : null,
+
+      colors: parseJSONField(req.body.colors, []),
+      sizes: parseJSONField(req.body.sizes, []),
+      specifications: parseJSONField(
+        req.body.specifications,
+        {}
+      ),
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Product created successfully",
       data: product,
     });
 
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return next(error);
   }
 };
 
-
 // GET ALL PRODUCTS
-export const getProducts = async (req, res) => {
+const getAllProducts = async (req, res, next) => {
   try {
     const products = await Product.findAll({
-      include: [{
-        model: Category,
-        attributes: ["id", "name"],
-      }],
+      order: [["createdAt", "DESC"]],
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
+      count: products.length,
       data: products,
     });
 
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return next(error);
   }
 };
 
-
 // GET SINGLE PRODUCT
-export const getProductById = async (req, res) => {
+const getProductById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-
-    const product = await Product.findByPk(id, {
-      include: Category,
-    });
+    const product = await Product.findByPk(req.params.id);
 
     if (!product) {
       return res.status(404).json({
@@ -85,26 +88,20 @@ export const getProductById = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: product,
     });
 
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return next(error);
   }
 };
 
-
 // UPDATE PRODUCT
-export const updateProduct = async (req, res) => {
+const updateProduct = async (req, res, next) => {
   try {
-    const { id } = req.params;
-
-    const product = await Product.findByPk(id);
+    const product = await Product.findByPk(req.params.id);
 
     if (!product) {
       return res.status(404).json({
@@ -113,29 +110,46 @@ export const updateProduct = async (req, res) => {
       });
     }
 
-    await product.update(req.body);
+    const updateData = { ...req.body };
 
-    res.status(200).json({
+    if (req.file) {
+      updateData.image =
+        `/uploads/products/${req.file.filename}`;
+    }
+
+    // Parse JSON fields only when they are provided
+    if (req.body.colors !== undefined) {
+      updateData.colors = parseJSONField(req.body.colors, []);
+    }
+
+    if (req.body.sizes !== undefined) {
+      updateData.sizes = parseJSONField(req.body.sizes, []);
+    }
+
+    if (req.body.specifications !== undefined) {
+      updateData.specifications = parseJSONField(
+        req.body.specifications,
+        {}
+      );
+    }
+
+    await product.update(updateData);
+
+    return res.status(200).json({
       success: true,
       message: "Product updated successfully",
       data: product,
     });
 
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return next(error);
   }
 };
 
-
 // DELETE PRODUCT
-export const deleteProduct = async (req, res) => {
+const deleteProduct = async (req, res, next) => {
   try {
-    const { id } = req.params;
-
-    const product = await Product.findByPk(id);
+    const product = await Product.findByPk(req.params.id);
 
     if (!product) {
       return res.status(404).json({
@@ -146,15 +160,21 @@ export const deleteProduct = async (req, res) => {
 
     await product.destroy();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Product deleted successfully",
     });
 
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return next(error);
   }
 };
+
+module.exports = {
+  createProduct,
+  getAllProducts,
+  getProductById,
+  updateProduct,
+  deleteProduct,
+};
+

@@ -1,80 +1,38 @@
-import express from "express";
-import dotenv from "dotenv";
-import router from "./Router/index.js";
-import { Product,Category,Query } from "./Model/index.js";
-import cors from "cors";
-import sequelize from "./Config/db.js";
+require("dotenv").config();
 
-dotenv.config();
+const app = require("./app");
+const sequelize = require("./Config/connection");
 
+// Load all database models and associations
+require("./Model");
 
-const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Request logger
-app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.url}`);
-  next();
-});
-
-app.use(express.json());
-
-app.use(cors({
-  origin: "http://localhost:5173",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
-
-app.use("/api/v1", router);
-
-app.get("/", (req, res) => {
-  res.send("Server is running");
-});
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
-});
-
-// Error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-  });
-});
-
-
-const server = async () => {
+const startServer = async () => {
   try {
+    // Test database connection
     await sequelize.authenticate();
-    console.log("Database connected successfully");
+    console.log("Database connected successfully!");
 
-    // Create tables in dependency order
-    await Category.sync();
-    console.log("Categories table created");
+    // Sync all registered models
+    await sequelize.sync();
+    console.log("Database synchronized successfully!");
 
-    await Product.sync();
-    console.log("Products table created");
-
-    await Query.sync();
-    console.log("Queries table created");
-
-    app.listen(process.env.PORT || 5000, () => {
-      console.log(
-        `Server is running on port ${process.env.PORT || 5000}`
-      );
+    // Start Express server
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log(`Home: http://localhost:${PORT}/`);
+      console.log(`API: http://localhost:${PORT}/api/v1`);
+      console.log(`Products: http://localhost:${PORT}/api/v1/products`);
+      console.log(`Query: http://localhost:${PORT}/api/v1/query`);
+      console.log(`Contact: http://localhost:${PORT}/api/v1/contact`);
     });
 
   } catch (error) {
-    console.error("Unable to start server:", error);
+    console.error("Server startup error:", error);
+    process.exit(1);
   }
 };
 
-server();
-
-
+startServer();
 
